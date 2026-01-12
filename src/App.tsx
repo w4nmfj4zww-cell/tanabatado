@@ -1,43 +1,28 @@
-import { useEffect, useState } from "react";
-import type { Schema } from "../amplify/data/resource";
-import { generateClient } from "aws-amplify/data";
+import { useState } from "react";
 
-const client = generateClient<Schema>();
+interface Product {
+  id: number;
+  imageUrl: string;
+  price: number;
+}
 
 function App() {
-  const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
+  const [products] = useState<Product[]>([
+    { id: 1, imageUrl: "https://placehold.jp/150x150.png", price: 1000 },
+    { id: 2, imageUrl: "https://placehold.jp/150x150.png", price: 2500 },
+    { id: 3, imageUrl: "https://placehold.jp/150x150.png", price: 5000 },
+  ]);
 
-  useEffect(() => {
-    client.models.Todo.observeQuery().subscribe({
-      next: (data) => setTodos([...data.items]),
-    });
-  }, []);
-
-  function createTodo() {
-    const content = window.prompt("Todo content");
-    if (content) client.models.Todo.create({ content });
-  }
-  
-  function deleteTodo(id: string) {
-    client.models.Todo.delete({ id })
-  }
   return (
     <main>
-      <h1>My todos</h1>
-      <button onClick={createTodo}>+ new</button>
-      <ul>
-        {todos.map((todo) => (
-          <li key={todo.id} onClick={() => deleteTodo(todo.id)}>
-            {todo.content}
-          </li>
+      <h1>商品一覧</h1>
+      <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+        {products.map((product) => (
+          <div key={product.id} style={{ border: "1px solid #ccc", padding: "16px", borderRadius: "8px" }}>
+            <img src={product.imageUrl} alt="商品画像" />
+            <p>価格: ¥{product.price}</p>
+          </div>
         ))}
-      </ul>
-      <div>
-        🥳 App successfully hosted. Try creating a new todo.
-        <br />
-        <a href="https://docs.amplify.aws/react/start/quickstart/#make-frontend-updates">
-          Review next step of this tutorial.
-        </a>
       </div>
     </main>
   );
