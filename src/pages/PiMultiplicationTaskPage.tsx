@@ -74,8 +74,6 @@ const PiMultiplicationTaskPage: React.FC = () => {
     '0', '.',
   ];
 
-  const isCorrect = activeInputId !== null && answers[activeInputId] === problems.find(p => p.id === activeInputId)?.correctAnswer;
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#212529', color: '#f8f9fa' }}>
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
