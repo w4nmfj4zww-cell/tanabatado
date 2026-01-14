@@ -1,30 +1,38 @@
-import { useState } from "react";
-
-interface Product {
-  id: number;
-  imageUrl: string;
-  price: number;
-}
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import BasicLearningMenuPage from './pages/BasicLearningMenuPage';
+import BasicLearningTaskPage from './pages/BasicLearningTaskPage';
+import AdvancedLearningTaskPage from './pages/AdvancedLearningTaskPage';
+import ResultsPage from './pages/ResultsPage';
+import SettingsPage from './pages/SettingsPage';
+import PiMultiplicationTaskPage from './pages/PiMultiplicationTaskPage';
+import HundredSquareCalculationPage from './pages/HundredSquareCalculationPage';
+import HundredSquareAdditionPage from './pages/HundredSquareAdditionPage'; // Import the new page
+import './App.css';
 
 function App() {
-  const [products] = useState<Product[]>([
-    { id: 1, imageUrl: "https://placehold.jp/150x150.png", price: 1000 },
-    { id: 2, imageUrl: "https://placehold.jp/150x150.png", price: 2500 },
-    { id: 3, imageUrl: "https://placehold.jp/150x150.png", price: 5000 },
-  ]);
-
   return (
-    <main>
-      <h1>商品一覧</h1>
-      <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-        {products.map((product) => (
-          <div key={product.id} style={{ border: "1px solid #ccc", padding: "16px", borderRadius: "8px" }}>
-            <img src={product.imageUrl} alt="商品画像" />
-            <p>価格: ¥{product.price}</p>
-          </div>
-        ))}
-      </div>
-    </main>
+    <Router>
+      <nav>
+        <ul>
+          <li><Link to="/">Home</Link></li>
+          <li><Link to="/settings">Settings</Link></li>
+        </ul>
+      </nav>
+      <main>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/basic-learning-menu" element={<BasicLearningMenuPage />} />
+          <Route path="/basic-learning-task" element={<BasicLearningTaskPage />} />
+          <Route path="/pi-multiplication" element={<PiMultiplicationTaskPage />} />
+          <Route path="/hundred-square-calculation" element={<HundredSquareCalculationPage />} />
+          <Route path="/hundred-square-addition" element={<HundredSquareAdditionPage />} />
+          <Route path="/advanced-learning" element={<AdvancedLearningTaskPage />} />
+          <Route path="/results" element={<ResultsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+        </Routes>
+      </main>
+    </Router>
   );
 }
 
