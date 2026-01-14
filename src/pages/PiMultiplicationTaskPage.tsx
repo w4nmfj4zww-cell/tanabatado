@@ -8,15 +8,16 @@ const PiMultiplicationTaskPage: React.FC = () => {
     return {
       id: n,
       text: `3.14 × ${n} = `,
-      correctAnswer: parseFloat(ans).toString(),
+      correctAnswer: ans,
     };
   }), []);
 
   const [answers, setAnswers] = useState<{ [key: number]: string }>({});
-  const [activeInputId, setActiveInputId] = useState<number>(1);
+  const [activeInputId, setActiveInputId] = useState<number | null>(1);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
+    if (activeInputId === null) return;
     // For physical keyboard users, keep the focus management.
     const activeInput = inputRefs.current[activeInputId - 1];
     if (activeInput) {
