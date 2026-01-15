@@ -1,16 +1,19 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 
-const PiMultiplicationTaskPage: React.FC = () => {
+const MultiplicationTaskPage: React.FC = () => {
+  const { level: levelString } = useParams<{ level: string }>();
+  const level = levelString ? parseInt(levelString, 10) : 1;
+
   const problems = useMemo(() => Array.from({ length: 9 }, (_, i) => {
     const n = i + 1;
-    const ans = (3.14 * n).toFixed(2);
+    const ans = (level * n).toString();
     return {
       id: n,
-      text: `3.14 × ${n} = `,
+      text: `${level} × ${n} = `,
       correctAnswer: ans,
     };
-  }), []);
+  }), [level]);
 
   const [answers, setAnswers] = useState<{ [key: number]: string }>({});
   const [activeInputId, setActiveInputId] = useState<number | null>(1);
@@ -20,7 +23,6 @@ const PiMultiplicationTaskPage: React.FC = () => {
 
   useEffect(() => {
     if (activeInputId === null) return;
-    // For physical keyboard users, keep the focus management.
     const activeInput = inputRefs.current[activeInputId - 1];
     if (activeInput) {
       activeInput.focus();
@@ -48,7 +50,7 @@ const PiMultiplicationTaskPage: React.FC = () => {
           setActiveInputId(id + 1);
         } else {
           inputRefs.current[id - 1]?.blur();
-          setActiveInputId(null);
+          setActiveInputId(null); // All questions answered
         }
       }, 300); // A small delay to show correctness
     }
@@ -57,7 +59,10 @@ const PiMultiplicationTaskPage: React.FC = () => {
   const handleInputChange = (id: number, value: string) => {
     const newAnswers = { ...answers, [id]: value };
     setAnswers(newAnswers);
-    checkAnswer(id, value);
+    // Only check answer, don't auto-advance here. Let Enter or full correct answer do that.
+    if (value === problems[id - 1].correctAnswer) {
+      checkAnswer(id, value);
+    }
   };
   
   const handleKeypadClick = (key: string) => {
@@ -74,10 +79,16 @@ const PiMultiplicationTaskPage: React.FC = () => {
         newAnswer = currentAnswer.slice(0, -1);
         break;
       case 'Enter':
-        checkAnswer(activeInputId, currentAnswer);
+        if (currentAnswer === problems[activeInputId - 1].correctAnswer) {
+          if (activeInputId < problems.length) {
+            setActiveInputId(activeInputId + 1);
+          } else {
+            setActiveInputId(null); // All questions answered
+          }
+        }
         return; // Avoid re-setting the answer
       default: // Numbers and dot
-        if (key === '.' && currentAnswer.includes('.')) return; // Avoid multiple dots
+        if (key === '.' && currentAnswer.includes('.')) return;
         newAnswer = currentAnswer + key;
         break;
     }
@@ -95,7 +106,7 @@ const PiMultiplicationTaskPage: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#212529', color: '#f8f9fa' }}>
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
-        <h2 style={{ textAlign: 'center', margin: '0 0 15px 0', fontSize: '1.5em', color: '#f8f9fa' }}>3.14の段</h2>
+        <h2 style={{ textAlign: 'center', margin: '0 0 15px 0', fontSize: '1.5em', color: '#f8f9fa' }}>{level}の段</h2>
         <div style={{ textAlign: 'center', margin: '15px 0', fontSize: '1.2em' }}>
           <p>残り時間: {timeLeft} 秒</p>
           {isTimeUp && <p style={{ color: 'red' }}>時間切れ！</p>}
@@ -167,4 +178,4 @@ const PiMultiplicationTaskPage: React.FC = () => {
   );
 };
 
-export default PiMultiplicationTaskPage;
+export default MultiplicationTaskPage;

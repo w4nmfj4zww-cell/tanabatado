@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 const BasicLearningTaskPage: React.FC = () => {
   const [timer, setTimer] = useState(30);
+  const [isTimeUp, setIsTimeUp] = useState(false);
   const [question, setQuestion] = useState('8 x 7 = ?'); // Placeholder question
   const [answer, setAnswer] = useState('');
   const [feedback, setFeedback] = useState('');
@@ -15,13 +16,14 @@ const BasicLearningTaskPage: React.FC = () => {
       }, 1000);
       return () => clearInterval(interval);
     } else {
-      // Navigate to results page when timer is up
-      navigate('/results');
+      setIsTimeUp(true);
     }
-  }, [timer, navigate]);
+  }, [timer]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isTimeUp) return;
+
     // Simple feedback logic
     if (answer === '56') {
       setFeedback('正解！');
@@ -37,6 +39,7 @@ const BasicLearningTaskPage: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
         <p>タイマー: {timer}秒</p>
+        {isTimeUp && <p style={{ color: 'red' }}>時間切れ！</p>}
         <div style={{ fontSize: '2rem', margin: '20px' }}>
           {/* For LaTeX, we'd use a component like <Latex>{`\(${question}\)`}</Latex> */}
           {question}
@@ -51,8 +54,9 @@ const BasicLearningTaskPage: React.FC = () => {
             onChange={(e) => setAnswer(e.target.value)}
             style={{ marginRight: '10px', width: '200px', padding: '10px' }}
             placeholder="答えを入力"
+            disabled={isTimeUp}
           />
-          <button type="submit">回答</button>
+          <button type="submit" disabled={isTimeUp}>回答</button>
         </form>
       </div>
     </div>

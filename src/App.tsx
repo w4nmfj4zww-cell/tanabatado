@@ -8,6 +8,8 @@ import SettingsPage from './pages/SettingsPage';
 import PiMultiplicationTaskPage from './pages/PiMultiplicationTaskPage';
 import HundredSquareCalculationPage from './pages/HundredSquareCalculationPage';
 import HundredSquareAdditionPage from './pages/HundredSquareAdditionPage'; // Import the new page
+import MultiplicationMenuPage from './pages/MultiplicationMenuPage';
+import MultiplicationTaskPage from './pages/MultiplicationTaskPage';
 import './App.css';
 
 function App() {
@@ -30,6 +32,8 @@ function App() {
           <Route path="/advanced-learning" element={<AdvancedLearningTaskPage />} />
           <Route path="/results" element={<ResultsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/multiplication-menu" element={<MultiplicationMenuPage />} />
+          <Route path="/multiplication-task/:level" element={<MultiplicationTaskPage />} />
         </Routes>
       </main>
     </Router>

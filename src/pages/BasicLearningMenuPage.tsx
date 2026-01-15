@@ -3,9 +3,8 @@ import { Link } from 'react-router-dom';
 
 const BasicLearningMenuPage: React.FC = () => {
   const learningItems = [
-    { id: 'kuku', name: '九九', path: '/basic-learning-task' },
+    { id: 'kuku', name: '九九', path: '/multiplication-menu' },
     { id: 'hyakumasu', name: '百ます計算' }, // pathを削除し、選択ボタンを表示
-    { id: 'pi-multiplication', name: '3.14の段', path: '/pi-multiplication' },
     // 今後、他の項目をここに追加
   ];
 
