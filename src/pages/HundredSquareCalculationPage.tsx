@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import Keypad from '../components/Keypad';
+import { Link } from 'react-router-dom';
 
 // Function to generate and shuffle an array of numbers
 const generateShuffledNumbers = (size: number): number[] => {
@@ -13,7 +12,6 @@ const generateShuffledNumbers = (size: number): number[] => {
 };
 
 const HundredSquareCalculationPage: React.FC = () => {
-  const navigate = useNavigate();
   const gridSize = 9;
   const [horizontalNumbers, setHorizontalNumbers] = useState<number[]>([]);
   const [verticalNumbers, setVerticalNumbers] = useState<number[]>([]);
@@ -69,12 +67,7 @@ const HundredSquareCalculationPage: React.FC = () => {
   }, [correctAnswersCount, totalCells, startTime]);
 
   useEffect(() => {
-    if (isTimeUp || elapsedTime) {
-      setTimeout(() => {
-        navigate('/results', { state: { score: correctAnswersCount, total: totalCells } });
-      }, 1000); // Wait a bit to show the final state
-      return;
-    }
+    if (isTimeUp || elapsedTime) return;
 
     if (timeLeft > 0) {
       const timerId = setInterval(() => {
@@ -85,7 +78,7 @@ const HundredSquareCalculationPage: React.FC = () => {
       setIsTimeUp(true);
       setActiveCell(null); // Disable keypad
     }
-  }, [timeLeft, isTimeUp, elapsedTime, navigate, correctAnswersCount, totalCells]);
+  }, [timeLeft, isTimeUp, elapsedTime]);
 
   const handleAnswerChange = (row: number, col: number, value: string) => {
     const key = `${row}-${col}`;
@@ -102,9 +95,8 @@ const HundredSquareCalculationPage: React.FC = () => {
           setActiveCell({ row: row + 1, col: 0 });
         } else {
           setActiveCell(null); // All done
-          setElapsedTime(Date.now() - (startTime || 0));
         }
-      }, 100); // Faster feedback
+      }, 300);
     }
   };
 
@@ -132,34 +124,123 @@ const HundredSquareCalculationPage: React.FC = () => {
     }
     setAnswers(prev => ({ ...prev, [answerKey]: newAnswer }));
     
+    // Check answer immediately after input for single-digit answers in multiplication
     const correctAnswer = correctAnswers[answerKey];
     if (correctAnswer === newAnswer) {
       handleAnswerChange(row, col, newAnswer);
     }
   };
 
+  const keypadLayout = ['7', '8', '9', 'C', '4', '5', '6', 'BS', '1', '2', '3', 'Enter', '0'];
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#212529', color: '#f8f9fa' }}>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '10px', paddingBottom: '30vh' /* Space for keypad */ }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
         <h1 style={{ textAlign: 'center', fontSize: '1.8em', margin: '10px 0' }}>100マス計算</h1>
+        <table style={{ margin: '0 auto', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              <th style={{...headerCellStyle, backgroundColor: '#343a40'}}>×</th>
+              {horizontalNumbers.map((num, index) => (
+                <th key={index} style={headerCellStyle}>{num}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {verticalNumbers.map((vNum, rowIndex) => (
+              <tr key={rowIndex}>
+                <th style={headerCellStyle}>{vNum}</th>
+                {horizontalNumbers.map((hNum, colIndex) => {
+                  const key = `${rowIndex}-${colIndex}`;
+                  const isCorrect = answers[key] === correctAnswers[key];
+                  const isActive = activeCell?.row === rowIndex && activeCell?.col === colIndex;
+
+                  return (
+                    <td key={colIndex} style={{...cellStyle, backgroundColor: isCorrect ? '#28a745' : '#343a40'}}>
+                      <input
+                        ref={el => {
+                          const index = rowIndex * gridSize + colIndex;
+                          if (el) inputRefs.current[index] = el;
+                        }}
+                        type="text"
+                        readOnly
+                        onFocus={!isTimeUp ? () => setActiveCell({ row: rowIndex, col: colIndex }) : undefined}
+                        value={answers[key] || ''}
+                        style={{
+                          ...inputStyle,
+                          color: isCorrect ? '#ffffff' : '#f8f9fa',
+                          backgroundColor: 'transparent',
+                          boxShadow: isActive && !isTimeUp ? '0 0 0 2px rgba(13, 110, 253, 0.7) inset' : 'none'
+                        }}
+                      />
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
         <div style={{ textAlign: 'center', marginTop: '15px', fontSize: '1.2em' }}>
           <p>残り時間: {timeLeft} 秒</p>
           {isTimeUp && <p style={{ color: 'red' }}>時間切れ！</p>}
-        </div>
-        <table style={{ margin: '0 auto', borderCollapse: 'collapse' }}>
-          {/* ... table content ... */}
-        </table>
-        <div style={{ textAlign: 'center', marginTop: '15px', fontSize: '1.2em' }}>
           <p>正解数: {correctAnswersCount} / {totalCells}</p>
           {elapsedTime && <p>クリアタイム: {(elapsedTime / 1000).toFixed(2)} 秒</p>}
         </div>
+        <div style={{ marginTop: '15px', textAlign: 'center' }}>
+          <Link to="/basic-learning-menu" style={{color: '#8ab4f8'}}>基礎学習メニューに戻る</Link>
+        </div>
       </div>
       
-      <Keypad onKeypadClick={handleKeypadClick} />
+      {/* Keypad */}
+      <div style={{ flexShrink: 0, padding: '5px', backgroundColor: '#343a40', borderTop: '1px solid #495057' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '5px', maxWidth: '400px', margin: '0 auto' }}>
+          {keypadLayout.map(key => (
+            <button key={key} onClick={() => handleKeypadClick(key)}
+              style={{
+                gridColumn: key === '0' ? 'span 2' : 'span 1',
+                padding: '15px 0',
+                fontSize: '1.5em',
+                border: 'none',
+                borderRadius: '8px',
+                backgroundColor: '#495057',
+                color: '#f8f9fa',
+                cursor: 'pointer',
+              }}>
+              {key}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
 
-// ... styles ...
+const headerCellStyle: React.CSSProperties = {
+  border: '1px solid #495057',
+  padding: '0',
+  textAlign: 'center',
+  width: '36px',
+  height: '36px',
+  backgroundColor: '#495057',
+  fontSize: '1.2em',
+  color: '#f8f9fa',
+};
+
+const cellStyle: React.CSSProperties = {
+  border: '1px solid #495057',
+  padding: '0',
+  width: '36px',
+  height: '36px',
+};
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  height: '100%',
+  border: 'none',
+  textAlign: 'center',
+  fontSize: '1.2em',
+  boxSizing: 'border-box',
+  outline: 'none',
+};
 
 export default HundredSquareCalculationPage;

@@ -1,9 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import Keypad from '../components/Keypad';
+import { useParams, Link } from 'react-router-dom';
 
 const MultiplicationTaskPage: React.FC = () => {
-  const navigate = useNavigate();
   const { level: levelString } = useParams<{ level: string }>();
   const level = levelString ? parseInt(levelString, 10) : 1;
 
@@ -32,14 +30,7 @@ const MultiplicationTaskPage: React.FC = () => {
   }, [activeInputId]);
   
   useEffect(() => {
-    if (isTimeUp || (activeInputId === null && !isTimeUp)) { // Trigger navigation when time is up or all questions answered
-      setTimeout(() => {
-        // Calculate score for MultiplicationTaskPage
-        const correctCount = problems.filter(p => answers[p.id] === p.correctAnswer).length;
-        navigate('/results', { state: { score: correctCount, total: problems.length } });
-      }, 1000); // Wait a bit to show the final state
-      return;
-    }
+    if (isTimeUp || activeInputId === null) return;
 
     if (timeLeft > 0) {
       const timerId = setInterval(() => {
@@ -50,7 +41,7 @@ const MultiplicationTaskPage: React.FC = () => {
       setIsTimeUp(true);
       setActiveInputId(null); // Disable keypad
     }
-  }, [timeLeft, isTimeUp, activeInputId, navigate, problems, answers]);
+  }, [timeLeft, isTimeUp, activeInputId]);
 
   const checkAnswer = (id: number, value: string) => {
     if (value === problems[id - 1].correctAnswer) {
@@ -105,9 +96,16 @@ const MultiplicationTaskPage: React.FC = () => {
     handleInputChange(activeInputId, newAnswer);
   };
 
+  const keypadLayout = [
+    '7', '8', '9', 'C',
+    '4', '5', '6', 'BS',
+    '1', '2', '3', 'Enter',
+    '0', '.',
+  ];
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#212529', color: '#f8f9fa' }}>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px', paddingBottom: '30vh' /* Space for keypad */ }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
         <h2 style={{ textAlign: 'center', margin: '0 0 15px 0', fontSize: '1.5em', color: '#f8f9fa' }}>{level}の段</h2>
         <div style={{ textAlign: 'center', margin: '15px 0', fontSize: '1.2em' }}>
           <p>残り時間: {timeLeft} 秒</p>
@@ -147,10 +145,35 @@ const MultiplicationTaskPage: React.FC = () => {
             })}
           </div>
         </form>
-        {/* Removed Link to multiplication-menu */}
+        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+          <Link to="/multiplication-menu" style={{ color: '#8ab4f8' }}>九九メニューに戻る</Link>
+        </div>
       </div>
 
-      <Keypad onKeypadClick={handleKeypadClick} />
+      {/* Keypad */}
+      <div style={{ flexShrink: 0, padding: '5px', backgroundColor: '#343a40', borderTop: '1px solid #495057' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '5px', maxWidth: '400px', margin: '0 auto' }}>
+          {keypadLayout.map(key => (
+            <button
+              key={key}
+              onClick={() => handleKeypadClick(key)}
+              style={{
+                gridColumn: (key === 'Enter' || key === 'BS') ? 'span 1' : ((key === '0' || key === '.') ? 'span 2' : 'span 1'),
+                padding: '15px 0',
+                fontSize: '1.5em',
+                border: 'none',
+                borderRadius: '8px',
+                backgroundColor: '#495057',
+                color: '#f8f9fa',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                cursor: 'pointer',
+              }}
+            >
+              {key}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

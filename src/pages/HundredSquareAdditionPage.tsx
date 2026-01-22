@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import Keypad from '../components/Keypad';
 
 // Function to generate and shuffle an array of numbers
 const generateShuffledNumbers = (size: number): number[] => {
@@ -131,14 +130,12 @@ const HundredSquareAdditionPage: React.FC = () => {
     }
   };
 
+  const keypadLayout = ['7', '8', '9', 'C', '4', '5', '6', 'BS', '1', '2', '3', 'Enter', '0'];
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#212529', color: '#f8f9fa' }}>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '10px', paddingBottom: '30vh' /* Space for keypad */ }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
         <h1 style={{ textAlign: 'center', fontSize: '1.8em', margin: '10px 0' }}>100マス計算 (足し算)</h1>
-        <div style={{ textAlign: 'center', marginTop: '15px', fontSize: '1.2em' }}>
-          <p>残り時間: {timeLeft} 秒</p>
-          {isTimeUp && <p style={{ color: 'red' }}>時間切れ！</p>}
-        </div>
         <table style={{ margin: '0 auto', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
@@ -183,6 +180,8 @@ const HundredSquareAdditionPage: React.FC = () => {
           </tbody>
         </table>
         <div style={{ textAlign: 'center', marginTop: '15px', fontSize: '1.2em' }}>
+          <p>残り時間: {timeLeft} 秒</p>
+          {isTimeUp && <p style={{ color: 'red' }}>時間切れ！</p>}
           <p>正解数: {correctAnswersCount} / {totalCells}</p>
           {elapsedTime && <p>クリアタイム: {(elapsedTime / 1000).toFixed(2)} 秒</p>}
         </div>
@@ -191,7 +190,26 @@ const HundredSquareAdditionPage: React.FC = () => {
         </div>
       </div>
       
-      <Keypad onKeypadClick={handleKeypadClick} />
+      {/* Keypad */}
+      <div style={{ flexShrink: 0, padding: '5px', backgroundColor: '#343a40', borderTop: '1px solid #495057' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '5px', maxWidth: '400px', margin: '0 auto' }}>
+          {keypadLayout.map(key => (
+            <button key={key} onClick={() => handleKeypadClick(key)}
+              style={{
+                gridColumn: key === '0' ? 'span 2' : 'span 1',
+                padding: '15px 0',
+                fontSize: '1.5em',
+                border: 'none',
+                borderRadius: '8px',
+                backgroundColor: '#495057',
+                color: '#f8f9fa',
+                cursor: 'pointer',
+              }}>
+              {key}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
