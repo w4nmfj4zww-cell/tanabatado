@@ -1,7 +1,20 @@
-import React from 'react';
+import React, { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { DogContext } from '../contexts/DogContext';
+import Dog from '../components/Dog';
+import DogModal from '../components/DogModal';
 
 const HomePage: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const dogContext = useContext(DogContext);
+
+  if (!dogContext) {
+    // or a loading spinner
+    return <div>Loading...</div>;
+  }
+
+  const { dogState } = dogContext;
+
   return (
     <div>
       <h1>トップページ</h1>
@@ -15,9 +28,11 @@ const HomePage: React.FC = () => {
       </div>
       <div>
         <h2>犬の成長状態</h2>
-        <p>（ここに犬のステータスが表示されます）</p>
+        <Dog dogState={dogState} />
       </div>
-      <button>犬を呼び出す</button>
+      <button onClick={() => setIsModalOpen(true)}>犬を呼び出す</button>
+
+      {isModalOpen && <DogModal onClose={() => setIsModalOpen(false)} />}
     </div>
   );
 };
