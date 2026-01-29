@@ -1,36 +1,32 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { InlineMath } from 'react-katex';
-import 'katex/dist/katex.min.css';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useParams, Link } from 'react-router-dom';
 
-interface Question {
-  id: number;
-  text: string | React.ReactNode;
-  correctAnswer: string;
-}
+const KarameJuurokuwariTaskPage: React.FC = () => {
+  const { level: levelString } = useParams<{ level: string }>();
+  const level = levelString ? parseInt(levelString, 10) : 2; // Default to 2
 
-const newProblem = String.raw`\left( 36.25 - 2\frac{612}{707} \div \square \right) \times 84 = 1\frac{3}{4} \div \left( \frac{1}{6} + \frac{1}{8} \right)`;
+  const problems = useMemo(() => {
+    const problemCount = level === 2 ? 1 : level;
+    return Array.from({ length: problemCount }, (_, i) => {
+      const numerator = i + 1;
+      const ans = (numerator / level).toString();
+      return {
+        id: numerator,
+        text: `${numerator} / ${level} = `,
+        correctAnswer: ans,
+      };
+    });
+  }, [level]);
 
-const initialQuestions: Question[] = [
-  { id: 1, text: '12 + 45 = ?', correctAnswer: '57' },
-  { id: 2, text: '100 - 33 = ?', correctAnswer: '67' },
-  { id: 3, text: <InlineMath math={newProblem} />, correctAnswer: '8/101' },
-];
-
-const AdvancedLearningTaskPage: React.FC = () => {
   const [answers, setAnswers] = useState<{ [key: number]: string }>({});
   const [activeInputId, setActiveInputId] = useState<number | null>(1);
   const [timeLeft, setTimeLeft] = useState(30);
   const [isTimeUp, setIsTimeUp] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const findProblem = (id: number) => initialQuestions.find(p => p.id === id);
-  const findProblemIndex = (id: number) => initialQuestions.findIndex(p => p.id === id);
-
   useEffect(() => {
     if (activeInputId === null) return;
-    const index = findProblemIndex(activeInputId);
-    const activeInput = inputRefs.current[index];
+    const activeInput = inputRefs.current[activeInputId - 1];
     if (activeInput) {
       activeInput.focus();
     }
@@ -51,27 +47,25 @@ const AdvancedLearningTaskPage: React.FC = () => {
   }, [timeLeft, isTimeUp, activeInputId]);
 
   const checkAnswer = (id: number, value: string) => {
-    const problem = findProblem(id);
-    if (!problem) return;
-
-    if (value === problem.correctAnswer) {
+    const problem = problems.find(p => p.id === id);
+    if (problem && value === problem.correctAnswer) {
       setTimeout(() => {
-        const currentIndex = findProblemIndex(id);
-        if (currentIndex < initialQuestions.length - 1) {
-          setActiveInputId(initialQuestions[currentIndex + 1].id);
+        const currentIndex = problems.findIndex(p => p.id === id);
+        if (currentIndex < problems.length - 1) {
+          setActiveInputId(problems[currentIndex + 1].id);
         } else {
-          const lastInput = inputRefs.current[currentIndex];
-          lastInput?.blur();
+          inputRefs.current[currentIndex]?.blur();
           setActiveInputId(null); // All questions answered
         }
-      }, 300);
+      }, 300); // A small delay to show correctness
     }
   };
 
   const handleInputChange = (id: number, value: string) => {
     const newAnswers = { ...answers, [id]: value };
     setAnswers(newAnswers);
-    if (findProblem(id)?.correctAnswer === value) {
+    const problem = problems.find(p => p.id === id);
+    if (problem && value === problem.correctAnswer) {
       checkAnswer(id, value);
     }
   };
@@ -90,18 +84,18 @@ const AdvancedLearningTaskPage: React.FC = () => {
         newAnswer = currentAnswer.slice(0, -1);
         break;
       case 'Enter':
-        const problem = findProblem(activeInputId);
+        const problem = problems.find(p => p.id === activeInputId);
         if (problem && currentAnswer === problem.correctAnswer) {
-            const currentIndex = findProblemIndex(activeInputId);
-            if (currentIndex < initialQuestions.length - 1) {
-                setActiveInputId(initialQuestions[currentIndex + 1].id);
-            } else {
-                setActiveInputId(null);
-            }
+          const currentIndex = problems.findIndex(p => p.id === activeInputId);
+          if (currentIndex < problems.length - 1) {
+            setActiveInputId(problems[currentIndex + 1].id);
+          } else {
+            setActiveInputId(null); // All questions answered
+          }
         }
-        return;
-      default:
-        if ((key === '.' || key === '/') && currentAnswer.includes(key)) return;
+        return; // Avoid re-setting the answer
+      default: // Numbers and dot
+        if (key === '.' && currentAnswer.includes('.')) return;
         newAnswer = currentAnswer + key;
         break;
     }
@@ -113,35 +107,40 @@ const AdvancedLearningTaskPage: React.FC = () => {
     '7', '8', '9', 'C',
     '4', '5', '6', 'BS',
     '1', '2', '3', 'Enter',
-    '0', '.', '/',
+    '0', '.',
   ];
+
+  const getProblemIndex = (id: number) => problems.findIndex(p => p.id === id);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#212529', color: '#f8f9fa' }}>
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
-        <h2 style={{ textAlign: 'center', margin: '0 0 15px 0', fontSize: '1.5em', color: '#f8f9fa' }}>応用学習</h2>
+        <h2 style={{ textAlign: 'center', margin: '0 0 15px 0', fontSize: '1.5em', color: '#f8f9fa' }}>唐目十六割 - {level}の段</h2>
         <div style={{ textAlign: 'center', margin: '15px 0', fontSize: '1.2em' }}>
           <p>残り時間: {timeLeft} 秒</p>
           {isTimeUp && <p style={{ color: 'red' }}>時間切れ！</p>}
         </div>
-        <form onSubmit={(e) => e.preventDefault()} style={{ maxWidth: '600px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            {initialQuestions.map((problem, index) => {
+        <form onSubmit={(e) => e.preventDefault()} style={{ maxWidth: '400px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {problems.map((problem) => {
               const isAnsweredCorrectly = answers[problem.id] === problem.correctAnswer;
               return (
                 <div key={problem.id} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <label htmlFor={`problem-${problem.id}`} style={{ flex: 1, fontFamily: 'monospace', fontSize: '1.2em', color: '#ced4da', textAlign: 'left' }}>
+                  <label htmlFor={`problem-${problem.id}`} style={{ flex: '0 0 120px', fontFamily: 'monospace', fontSize: '1.4em', color: '#ced4da' }}>
                     {problem.text}
                   </label>
                   <input
                     id={`problem-${problem.id}`}
-                    ref={el => inputRefs.current[index] = el}
+                    ref={el => {
+                      const index = getProblemIndex(problem.id);
+                      if(index !== -1) inputRefs.current[index] = el;
+                    }}
                     type="text"
                     readOnly
                     value={answers[problem.id] || ''}
                     onFocus={!isTimeUp ? () => setActiveInputId(problem.id) : undefined}
                     style={{
-                      width: '150px',
+                      flex: 1,
                       fontSize: '1.4em',
                       padding: '8px',
                       border: `1px solid ${activeInputId === problem.id && !isTimeUp ? '#0d6efd' : '#6c757d'}`,
@@ -149,6 +148,8 @@ const AdvancedLearningTaskPage: React.FC = () => {
                       backgroundColor: isAnsweredCorrectly ? '#28a745' : '#343a40',
                       color: isAnsweredCorrectly ? '#ffffff' : '#f8f9fa',
                       textAlign: 'right',
+                      boxShadow: activeInputId === problem.id && !isTimeUp ? '0 0 0 2px rgba(13, 110, 253, 0.5)' : 'none',
+                      outline: 'none',
                     }}
                   />
                 </div>
@@ -156,8 +157,8 @@ const AdvancedLearningTaskPage: React.FC = () => {
             })}
           </div>
         </form>
-        <div style={{ marginTop: '30px', textAlign: 'center' }}>
-          <Link to="/" style={{ color: '#8ab4f8' }}>トップページに戻る</Link>
+        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+          <Link to="/karame-juurokuwari-menu" style={{ color: '#8ab4f8' }}>メニューに戻る</Link>
         </div>
       </div>
 
@@ -169,13 +170,14 @@ const AdvancedLearningTaskPage: React.FC = () => {
               key={key}
               onClick={() => handleKeypadClick(key)}
               style={{
-                gridColumn: key === 'Enter' ? 'span 1' : 'span 1',
+                gridColumn: (key === 'Enter' || key === 'BS') ? 'span 1' : ((key === '0' || key === '.') ? 'span 2' : 'span 1'),
                 padding: '15px 0',
                 fontSize: '1.5em',
                 border: 'none',
                 borderRadius: '8px',
                 backgroundColor: '#495057',
                 color: '#f8f9fa',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
                 cursor: 'pointer',
               }}
             >
@@ -188,4 +190,4 @@ const AdvancedLearningTaskPage: React.FC = () => {
   );
 };
 
-export default AdvancedLearningTaskPage;
+export default KarameJuurokuwariTaskPage;

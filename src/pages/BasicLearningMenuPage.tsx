@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 const BasicLearningMenuPage: React.FC = () => {
   const learningItems = [
     { id: 'kuku', name: '九九', path: '/multiplication-menu' },
+    { id: 'karame', name: '唐目十六割', path: '/karame-juurokuwari-menu' },
     { id: 'hyakumasu', name: '百ます計算' }, // pathを削除し、選択ボタンを表示
     // 今後、他の項目をここに追加
   ];
