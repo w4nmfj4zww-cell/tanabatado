@@ -1,13 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import Dog from '../components/Dog';
 
 const BasicLearningMenuPage: React.FC = () => {
+  const [isDogVisible, setIsDogVisible] = useState(true);
+
   const learningItems = [
     { id: 'kuku', name: '九九', path: '/multiplication-menu' },
+    { id: 'karame', name: '唐目十六割', path: '/karame-jurokuwari-menu' },
     { id: 'karame', name: '唐目十六割', path: '/karame-juurokuwari-menu' },
     { id: 'hyakumasu', name: '百ます計算' }, // pathを削除し、選択ボタンを表示
     // 今後、他の項目をここに追加
   ];
+
+  const handleToggleDog = () => {
+    setIsDogVisible(prev => !prev);
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', padding: '10px 20px', boxSizing: 'border-box', textAlign: 'center' }}>
@@ -46,7 +54,10 @@ const BasicLearningMenuPage: React.FC = () => {
         </ul>
       </div>
       <div style={{ flexShrink: 0, paddingBottom: '10px' }}>
-        <button style={{ width: '80%', maxWidth: '300px', padding: '12px', fontSize: '1.2em' }}>犬を呼び出す</button>
+        <Dog isVisible={isDogVisible} />
+        <button onClick={handleToggleDog} style={{ width: '80%', maxWidth: '300px', padding: '12px', fontSize: '1.2em', marginTop: '10px' }}>
+          {isDogVisible ? '犬を帰す' : '犬を呼び出す'}
+        </button>
       </div>
     </div>
   );
